@@ -1,0 +1,98 @@
+module toml_c;
+
+import std::io;
+
+struct Table @cname("toml_table_t")
+{
+  ZString key;
+  CInt keylen;
+  CBool implicit,readonly;
+  CInt nkval;
+  Keyval **kval;
+  CInt narr;
+  Array arr;
+  CInt ntbl;
+  Table **tbl;
+}
+
+struct Array @cname("toml_array_t")
+{
+  ZString key;
+  CInt keylen,kind,type,nitem;
+  Arritem *item;
+}
+
+struct Arritem @cname("toml_arritem_t")
+{
+  CInt valtype;
+  CChar *val;
+  Array *arr;
+  Table *tbl;
+}
+
+struct Keyval @cname("toml_keyval_t")
+{
+  ZString key;
+  CInt keylen;
+  ZString val;
+}
+
+struct Pos @cname("toml_pos_t")
+{
+  CInt line,col;
+}
+
+struct Timestamp @cname("toml_timestamp_t")
+{
+  CChar kind;
+  CInt year,month,day;
+  CInt hour,minute,second,millisec;
+  CInt tz;
+}
+
+struct Value @cname("toml_value_t")
+{
+  CBool ok;
+  union u
+  {
+    struct
+    {
+      CChar *s;
+      CInt sl;
+    }
+    Timestamp ts;
+    CBool b;
+    long i;
+    double d;
+  }
+}
+
+fn Table *parse(ZString *toml,
+		CChar *errbuf,
+		CInt errbufsz) @cname("toml_parse");
+fn Table *parse_file(io::File *fp,
+		     CChar* errbuf,
+		     CInt errbufsz) @cname("toml_parse_file");
+fn void Table.free(&self) @cname("toml_free");
+
+// Table functions:
+fn CInt Table.len(&self) @cname("toml_table_len");
+fn ZString Table.key_value(&self,CInt keyidx,CInt *keylen) @cname("toml_table_key");
+fn Value Table.string(&self,ZString key) @cname("toml_table_string");
+fn Value Table.bool_value(&self,ZString key) @cname("toml_table_bool");
+fn Value Table.int_value(&self,ZString key) @cname("toml_table_int");
+fn Value Table.double_value(&self,ZString key) @cname("toml_table_double");
+fn Value Table.timestamp(&self,ZString key) @cname("toml_table_timestamp");
+fn Array *Table.array(&self,ZString key) @cname("toml_table_array");
+fn Table *Table.table(&self,ZString key) @cname("toml_table_table");
+
+// Array functions:
+fn CInt Array.len(&self) @cname("toml_array_len");
+fn Value Array.string(&self,CInt idx) @cname("toml_array_string");
+fn Value Array.bool_value(&self,CInt idx) @cname("toml_array_bool");
+fn Value Array.int_value(&self,CInt idx) @cname("toml_array_int");
+fn Value Array.double_value(&self,CInt idx) @cname("toml_array_double");
+fn Value Array.timestamp(&self,CInt idx) @cname("toml_array_timestamp");
+fn Array* Array.array(&self,CInt idx) @cname("toml_array_array");
+fn Table* Array.table(&self,CInt idx) @cname("toml_array_table");
+
